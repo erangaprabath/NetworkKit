@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum CustomURLError:Error{
+public enum CustomURLError:Error{
     case badURL
     case incorrectURLFormat
 }
