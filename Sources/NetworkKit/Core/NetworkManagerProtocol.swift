@@ -6,6 +6,6 @@
 //
 
 
-public protocol NetworkManagerProtocol {
+public protocol NetworkManagerProtocol:Sendable {
     func dataFetch<T:Decodable> (_ endpoint:any EndpointsProtocol) async throws -> T
 }

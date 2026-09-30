@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class NetworkLogger{
+public final class NetworkLogger:Sendable{
     
     public init () {}
     
@@ -18,7 +18,8 @@ public final class NetworkLogger{
         print("URL   : \(request.url?.absoluteString ?? "No url found")")
         print("Mthod : \(request.httpMethod ?? "No method found")")
         
-        if let headers = request.allHTTPHeaderFields,!headers.isEmpty{
+        if var headers = request.allHTTPHeaderFields,!headers.isEmpty{
+            headers.removeValue(forKey: "Authorization")
             print("Headers  : \(headers)")
         }
         if let body = request.httpBody,!body.isEmpty{

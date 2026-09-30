@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class NetworkKit:NetworkManagerProtocol{
+public final class NetworkKit:NetworkManagerProtocol,Sendable{
 
     private let cacheManager:CacheManager
     private let requestManager:RequestManager
@@ -24,7 +24,7 @@ public final class NetworkKit:NetworkManagerProtocol{
             return cached
         }
         do {
-            return try await requestManager.perform(from: request)
+            return try await requestManager.perform(from: request,check: cacheManager)
         }catch {
             throw error
         }
