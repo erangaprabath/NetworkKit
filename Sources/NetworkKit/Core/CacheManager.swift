@@ -7,11 +7,11 @@
 
 import Foundation
 
-public final class CacheManager{
+public final class CacheManager:Sendable{
     
     private let cache:URLCache
     private let decoder:JSONDecoder
-    unowned let logs:NetworkLogger
+    private let logs:NetworkLogger
     
    public init(memoryCapacity:Int = 50 * 1024 * 1024, diskCapacity:Int = 100 * 1024 * 1024, decoder:JSONDecoder = JSONDecoder(),logs:NetworkLogger) {
         self.cache = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity)
