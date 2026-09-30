@@ -7,14 +7,16 @@
 
 import Foundation
 
-public final class RequestManager{
+
+public final class RequestManager:Sendable{
     
     private let urlSession:URLSession
     private let decoder:JSONDecoder
     private let retryLimit:Int
-    private var retryDelay:TimeInterval
+    private let retryDelay:TimeInterval
     private let logs:NetworkLogger
-    private let statusCodeCheck:CheckResponseStatus = CheckResponseStatus()
+    private let responseStatusCodeChecker:URLResponseStatusCodeChecker = URLResponseStatusCodeChecker()
+    private let requestHealthChecker:URLRequestHealthChecker = URLRequestHealthChecker()
     
     public init(urlSession: URLSession = .shared, decoder: JSONDecoder = JSONDecoder(), retryLimit: Int = 3, retryDelay: TimeInterval = 3.0) {
         self.urlSession = urlSession
@@ -37,6 +39,7 @@ public final class RequestManager{
                 case .cancelled:
                     throw NetworkError.cancelled
                 case .timedOut:
+                    guard requestHealthChecker.checkAllowForRertyByHttpMethod(request) else { throw NetworkError.timeOut }
                     return try await retryEvent(from: request, check: cacheManager, by: attempt, faildWith: NetworkError.retryFailed)
                 default:
                     throw NetworkError.unknown(error: urlError)
@@ -46,16 +49,17 @@ public final class RequestManager{
         let httpReponse = try responseCast(to: response)
         logs.logResponse(httpReponse, data: data)
         
-        if try statusCodeCheck.check500StatusCode(from: httpReponse), attempt < retryLimit {
+        if responseStatusCodeChecker.isRetryableStatus(httpReponse),
+           requestHealthChecker.checkAllowForRertyByHttpMethod(request),
+           attempt < retryLimit {
             return try await retryEvent(from: request, check: cacheManager, by: attempt, faildWith: NetworkError.invalidStatusCode(statusCode: httpReponse.statusCode))
-            
         }
-        
-        guard try statusCodeCheck.checkUnAuthorizedStatusCode(from: httpReponse) else {
+
+        if responseStatusCodeChecker.isUnauthorized(httpReponse) {
             throw NetworkError.unAuthorized
         }
-        
-        guard try statusCodeCheck.checkStatusCode(from: httpReponse) else {
+
+        guard responseStatusCodeChecker.isSuccess(httpReponse) else {
             throw NetworkError.invalidStatusCode(statusCode: httpReponse.statusCode)
         }
         
