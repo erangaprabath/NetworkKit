@@ -39,7 +39,7 @@ public final class RequestManager:Sendable{
                 case .cancelled:
                     throw NetworkError.cancelled
                 case .timedOut:
-                    guard requestHealthChecker.checkAllowForRertyByHttpMethod(request) else { throw NetworkError.timeOut }
+                    guard requestHealthChecker.checkAllowForRetryByHttpMethod(request) else { throw NetworkError.timeOut }
                     return try await retryEvent(from: request, check: cacheManager, by: attempt, faildWith: NetworkError.retryFailed)
                 default:
                     throw NetworkError.unknown(error: urlError)
@@ -50,7 +50,7 @@ public final class RequestManager:Sendable{
         logs.logResponse(httpReponse, data: data)
         
         if responseStatusCodeChecker.isRetryableStatus(httpReponse),
-           requestHealthChecker.checkAllowForRertyByHttpMethod(request),
+           requestHealthChecker.checkAllowForRetryByHttpMethod(request),
            attempt < retryLimit {
             return try await retryEvent(from: request, check: cacheManager, by: attempt, faildWith: NetworkError.invalidStatusCode(statusCode: httpReponse.statusCode))
         }
