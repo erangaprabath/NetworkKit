@@ -28,7 +28,7 @@ final class RequestBuilder{
         var urlComponentsWithQueryItems = urlComponents
         if let queryItems = endpoints.queryItems{
             urlComponentsWithQueryItems.queryItems = queryItems.map{
-                URLQueryItem(name: $0.key, value: $0.value)
+                URLQueryItem(name: $0.name, value: $0.value)
             }
         }
         return urlComponentsWithQueryItems
@@ -43,16 +43,16 @@ final class RequestBuilder{
         )
         
         request.httpMethod = endpoints.httpMethod.rawValue
-        request.allHTTPHeaderFields = endpoints.header
-        if endpoints.isAuthTokenRequired,
-           let token = endpoints.authToken {
-            request.setValue(token.value, forHTTPHeaderField: token.key)
-        }
+        request.allHTTPHeaderFields = endpoints.headers
         
-        if let rawBody = endpoints.rawBody {
-            request.httpBody = rawBody
-        }else if let body = endpoints.body {
-            request.httpBody = try JSONEncoder().encode(body)
+        if let body = endpoints.body {
+            switch body {
+                case .json(let body):
+                    request.httpBody = try JSONEncoder().encode(body)
+                case .raw(let data, let contentType):
+                    request.httpBody = data
+            }
+            
         }
         
         return request

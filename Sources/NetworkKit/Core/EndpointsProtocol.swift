@@ -7,16 +7,26 @@
 
 import Foundation
 
-public protocol EndpointsProtocol{
+public protocol EndpointsProtocol:Sendable{
     var baseURL:String? { get }
     var path:String { get }
     var httpMethod:HTTPMethod { get }
-    var header:[String:String]? { get }
-    var queryItems:[String:String]? { get }
-    var body:(any Encodable & Sendable)? { get }
-    var isAuthTokenRequired:Bool { get }
-    var authToken:(key:String,value:String)? { get }
-    var publickKey:String? { get }
-    var privateKey:String? { get }
-    var rawBody:Data? { get }
+    var headers:[String:String]? { get }
+    var queryItems:[URLQueryItem]? { get }
+    var body:RequestBody? { get }
+    var requiredAuth:Bool { get }
+}
+
+public enum RequestBody{
+    case json (any Encodable & Sendable)
+    case raw(Data, contentType: String)
+}
+
+
+public extension EndpointsProtocol{
+    var hhtpMethod: HTTPMethod { .get }
+    var headers: [String: String]? { [:] }
+    var queryItems: [URLQueryItem]? { [] }
+    var body: RequestBody? { nil }
+    var requiresAuth: Bool { false }
 }
