@@ -8,7 +8,7 @@ import Foundation
 
 final class URLRequestHealthChecker:Sendable{
     
-    func checkAllowForRertyByHttpMethod (_ request:URLRequest) -> Bool{
+    func checkAllowForRetryByHttpMethod (_ request:URLRequest) -> Bool{
         let allowMethods = ["GET","PUT","DELETE"]
         return allowMethods.contains(request.httpMethod ?? "")
     }
